@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
 import 'screens/top_screen.dart';
+import 'package:provider/provider.dart';
+import 'providers/game_setting_provider.dart';
 
 void main() {
-  runApp(const MainApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => GameSettingProvider()),
+        // 他のProvider...
+      ],
+      child: const MainApp(),
+    ),
+  );
 }
 
 class MainApp extends StatelessWidget {
@@ -10,7 +20,7 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       home: TopScreen(),
     );
   }

@@ -1,35 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../providers/game_setting_provider.dart';
 
 class RingGameFieldWidget extends StatelessWidget {
-  final TextEditingController sbController;
-  final TextEditingController anteController;
-  final TextEditingController minBuyinController;
-  final TextEditingController maxBuyinController;
-  final TextEditingController timebankController;
-
-  RingGameFieldWidget({
-    required this.sbController,
-    required this.anteController,
-    required this.minBuyinController,
-    required this.maxBuyinController,
-    required this.timebankController,
-  });
+  const RingGameFieldWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildFormField('SB', '100', '点', sbController),
-        _buildFormField('アンティ', '0', '点', anteController),
-        _buildFormField('MINバイイン', '100', 'BB', minBuyinController),
-        _buildFormField('MAXバイイン', '200', 'BB', maxBuyinController),
-        _buildFormField('タイムバンク', '30', '秒', timebankController),
-      ],
+    return Consumer<GameSettingProvider>(
+      builder: (context, gameSettings, child) {
+        return Column(
+          children: [
+            _buildFormField(
+              label: 'SB',
+              hint: '100',
+              unit: '点',
+              onChanged: gameSettings.updateSb,
+            ),
+            _buildFormField(
+              label: 'アンティ',
+              hint: '0',
+              unit: '点',
+              onChanged: gameSettings.updateAnte,
+            ),
+            _buildFormField(
+              label: 'MINバイイン',
+              hint: '100',
+              unit: 'BB',
+              onChanged: gameSettings.updateMinBuyin,
+            ),
+            _buildFormField(
+              label: 'MAXバイイン',
+              hint: '200',
+              unit: 'BB',
+              onChanged: gameSettings.updateMaxBuyin,
+            ),
+            _buildFormField(
+              label: 'タイムバンク',
+              hint: '30',
+              unit: '秒',
+              onChanged: gameSettings.updateTimebank,
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildFormField(String label, String hint, String unit, TextEditingController controller) {
+  Widget _buildFormField({
+    required String label,
+    required String hint,
+    required String unit,
+    required Function(String) onChanged,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -39,7 +63,6 @@ class RingGameFieldWidget extends StatelessWidget {
           Container(
             width: 100.0,
             child: TextField(
-              controller: controller,
               decoration: InputDecoration(
                 hintText: hint,
               ),
@@ -47,6 +70,7 @@ class RingGameFieldWidget extends StatelessWidget {
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ],
+              onChanged: onChanged,
             ),
           ),
           SizedBox(width: 8.0),
@@ -56,4 +80,3 @@ class RingGameFieldWidget extends StatelessWidget {
     );
   }
 }
-
