@@ -3,7 +3,7 @@ import 'package:instant_poker/widgets/circle_container_widget.dart';
 import 'package:instant_poker/widgets/ringgame_field_widget.dart';
 import '../utils/colors_util.dart';
 import 'package:provider/provider.dart';
-import '../providers/game_provider.dart';
+import './game_screen.dart';
 
 class TopScreen extends StatelessWidget {
   const TopScreen({super.key});
@@ -74,7 +74,7 @@ class TopScreen extends StatelessWidget {
                         indicatorColor: Colors.white,
                       ),
                       Container(
-                        height: 500,
+                        height: 360,
                         child: TabBarView(
                           children: [
                             RingGameFieldWidget(),
@@ -94,6 +94,20 @@ class TopScreen extends StatelessWidget {
                               ),
                             ),
                           ],
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => GameScreen(),
+                            ),
+                          );
+                        },
+                        child: CircleContainerWidget(
+                          child: Text('ゲームをホスト',
+                              style: TextStyle(color: Colors.white)),
+                          color: ColorsUtil.tableGrey,
                         ),
                       ),
                     ]),
