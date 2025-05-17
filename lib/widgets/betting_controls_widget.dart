@@ -94,8 +94,13 @@ class _BettingControlsWidgetState extends State<BettingControlsWidget> {
                   Colors.blue,
                 ),
 
-              // レイズボタン
-              _buildRaiseButton(context),
+              // ベットまたはレイズボタン
+              if (widget.currentBet == 0)
+                // ベットボタン (ベットがない場合)
+                _buildBetButton(context)
+              else
+                // レイズボタン (既にベットがある場合)
+                _buildRaiseButton(context),
 
               // フォールドボタン
               _buildActionButton(
@@ -309,6 +314,124 @@ class _BettingControlsWidgetState extends State<BettingControlsWidget> {
                 TextButton(
                   onPressed: () {
                     widget.onRaise(raiseAmount);
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    '確定',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ベットボタンを構築
+  Widget _buildBetButton(BuildContext context) {
+    int minBet = widget.currentPhase == GamePhase.preFlop
+        ? widget.bigBlindAmount
+        : widget.bigBlindAmount;
+
+    bool canBet = widget.playerChips >= minBet;
+
+    return ElevatedButton(
+      onPressed: canBet ? () => _showBetDialog(context) : null,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blue,
+        disabledBackgroundColor: Colors.grey,
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      child: Text(
+        'ベット',
+        style: TextStyle(color: Colors.white),
+      ),
+    );
+  }
+
+  // ベットダイアログを表示
+  void _showBetDialog(BuildContext context) {
+    int minBet = widget.currentPhase == GamePhase.preFlop
+        ? widget.bigBlindAmount
+        : widget.bigBlindAmount;
+
+    int maxBet = widget.playerChips;
+    int betAmount = minBet;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: ColorsUtil.backgroundPurple,
+              title: Text(
+                'ベット額を選択',
+                style: TextStyle(color: Colors.white),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '残りチップ: ${widget.playerChips}',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'ベット額: $betAmount',
+                    style: TextStyle(color: Colors.white, fontSize: 18),
+                  ),
+                  Slider(
+                    value: betAmount.toDouble(),
+                    min: minBet.toDouble(),
+                    max: maxBet.toDouble(),
+                    divisions: (maxBet - minBet) ~/ 10 + 1,
+                    label: betAmount.toString(),
+                    onChanged: (value) {
+                      setDialogState(() {
+                        betAmount = value.toInt();
+                      });
+                    },
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          setDialogState(() {
+                            betAmount = minBet;
+                          });
+                        },
+                        child: Text('最小'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          setDialogState(() {
+                            betAmount = maxBet; // オールイン
+                          });
+                        },
+                        child: Text('オールイン'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'キャンセル',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    widget.onRaise(betAmount); // 同じコールバックを使用
                     Navigator.pop(context);
                   },
                   child: Text(

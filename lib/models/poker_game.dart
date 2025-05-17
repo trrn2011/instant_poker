@@ -209,17 +209,18 @@ class PokerGame {
 
     // フロップ以降は、ディーラーの左側から行動開始
     if (currentPhase != GamePhase.showdown) {
-      // スモールブラインドから行動開始（または最初の有効なプレイヤー）
-      int startIndex = smallBlindIndex;
+      // ディーラーの左隣から行動開始（残っているプレイヤーのうち最もディーラーに近いプレイヤー）
+      int startIndex = (dealerIndex + 1) % players.length;
+      int initialStartIndex = startIndex; // 一周したかどうかを確認するための変数
+
       do {
-        startIndex = (startIndex) % players.length;
         if (players[startIndex].isActive && !players[startIndex].hasFolded) {
           currentPlayerIndex = startIndex;
           roundStartPlayerIndex = startIndex;
           break;
         }
         startIndex = (startIndex + 1) % players.length;
-      } while (startIndex != smallBlindIndex);
+      } while (startIndex != initialStartIndex); // 一周してもプレイヤーが見つからない場合は終了
 
       // 次のプレイヤーがCPUの場合、自動的に行動
       if (currentPlayer.name != 'あなた' && !isGameOver) {
@@ -294,11 +295,29 @@ class PokerGame {
     }
   }
 
+  /// プレイヤーが新しくベットを行う
+  /// @param player ベットするプレイヤー
+  /// @param amount ベット額
+  void bet(Player player, int amount) {
+    if (!player.isActive || player.hasFolded) return;
+    // ベットは前にベットがない場合のみ可能
+    if (currentBet > 0) return;
+
+    if (player.placeBet(amount)) {
+      pot += amount;
+      currentBet = amount;
+      _recordAction(PlayerAction.bet, amount, player);
+    }
+  }
+
   /// プレイヤーがレイズを行う
   /// @param player レイズするプレイヤー
   /// @param amount レイズ額（現在のベット額に上乗せする額）
   void raise(Player player, int amount) {
     if (!player.isActive || player.hasFolded) return;
+    // レイズは前にベットがある場合のみ可能
+    if (currentBet == 0) return;
+
     int totalBet = currentBet + amount;
     if (player.placeBet(totalBet)) {
       pot += totalBet;
@@ -311,6 +330,9 @@ class PokerGame {
   /// @param player コールするプレイヤー
   void call(Player player) {
     if (!player.isActive || player.hasFolded) return;
+    // コールは前にベットがある場合のみ可能
+    if (currentBet == 0) return;
+
     int amountToCall = currentBet - player.currentBet;
     if (amountToCall <= 0) return; // すでに十分なベット額がある場合
     if (player.placeBet(amountToCall)) {
@@ -323,7 +345,7 @@ class PokerGame {
   /// @param player チェックするプレイヤー
   bool check(Player player) {
     if (!player.isActive || player.hasFolded) return false;
-    // ベットがない場合のみチェック可能
+    // ベットがない場合、または既に現在のベットと同額を賭けている場合のみチェック可能
     if (currentBet == 0 || player.currentBet == currentBet) {
       _recordAction(PlayerAction.check, 0, player);
       return true;
@@ -405,18 +427,23 @@ class PokerGame {
       int randomAction = (DateTime.now().millisecondsSinceEpoch % 10);
 
       if (currentBet == 0 || currentPlayer.currentBet == currentBet) {
-        // ベットがない場合
+        // ベットがない場合またはすでにコールしている場合
         if (randomAction < 7) {
           // 70%の確率でチェック
           check(currentPlayer);
         } else {
           // 30%の確率でベット
-          int betAmount = bigBlindAmount;
-          placeBet(currentPlayer, betAmount);
-          _recordAction(PlayerAction.bet, betAmount, currentPlayer);
+          if (currentBet == 0) {
+            // ベットがない場合はベット
+            int betAmount = bigBlindAmount;
+            bet(currentPlayer, betAmount);
+          } else {
+            // すでにベットがある場合はレイズ
+            raise(currentPlayer, bigBlindAmount);
+          }
         }
       } else {
-        // ベットがある場合
+        // ベットがあって、まだコールしていない場合
         if (randomAction < 5) {
           // 50%の確率でコール
           call(currentPlayer);

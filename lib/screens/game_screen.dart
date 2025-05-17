@@ -157,7 +157,14 @@ class _GameScreenState extends State<GameScreen> {
                                   },
                                   onRaise: (amount) {
                                     setState(() {
-                                      game.raise(game.currentPlayer, amount);
+                                      // 現在のベット額に応じて、ベットかレイズを選択
+                                      if (game.currentBet == 0) {
+                                        // ベットがない場合はベット
+                                        game.bet(game.currentPlayer, amount);
+                                      } else {
+                                        // ベットがある場合はレイズ
+                                        game.raise(game.currentPlayer, amount);
+                                      }
                                       game.nextPlayer();
                                     });
                                   },
