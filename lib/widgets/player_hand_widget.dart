@@ -16,35 +16,59 @@ class PlayerHandWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-        border: isCurrentPlayer
-            ? Border.all(color: Colors.yellow, width: 2.0)
-            : null,
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: Column(
-        children: [
-          Text(
-            player.name,
-            style: TextStyle(color: Colors.white),
+    return Stack(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            border: isCurrentPlayer
+                ? Border.all(color: Colors.yellow, width: 2.0)
+                : null,
+            borderRadius: BorderRadius.circular(8.0),
           ),
-          Text(
-            '${player.chips}チップ',
-            style: TextStyle(color: Colors.white),
+          child: Column(
+            children: [
+              Text(
+                player.name,
+                style: TextStyle(color: Colors.white),
+              ),
+              Text(
+                '${player.chips}チップ',
+                style: TextStyle(color: Colors.white),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: player.hand.map((card) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    child: _buildCard(card),
+                  );
+                }).toList(),
+              ),
+            ],
           ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: player.hand.map((card) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                child: _buildCard(card),
-              );
-            }).toList(),
+        ),
+        // フォールド中を示すオーバーレイ
+        if (player.hasFolded)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Center(
+                child: Text(
+                  'フォールド',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+              ),
+            ),
           ),
-        ],
-      ),
+      ],
     );
   }
 

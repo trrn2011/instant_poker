@@ -1,4 +1,5 @@
 import 'card.dart';
+import 'dart:math';
 
 /// ポーカーの手札を評価するためのクラス
 class HandEvaluator {
@@ -14,10 +15,71 @@ class HandEvaluator {
   static const int ONE_PAIR = 1; // ワンペア（1組の同じ数字のペア）
   static const int HIGH_CARD = 0; // ハイカード（上記の役なし）
 
+  /// カードのリストから最強の5枚の組み合わせを見つけて評価する
+  /// この方法では、最大7枚のカードから最強の5枚を見つける
+  /// @param cards 評価するカード（手札 + コミュニティカード）
+  /// @return 役の評価結果
+  static HandResult evaluateHand(List<Card> cards) {
+    if (cards.length < 5) {
+      throw ArgumentError('少なくとも5枚のカードが必要です');
+    }
+
+    // 5枚ちょうどの場合はそのまま評価
+    if (cards.length == 5) {
+      return _evaluateFiveCards(cards);
+    }
+
+    // 5枚を超える場合（テキサスホールデムでは通常7枚）
+    // 可能な全ての5枚の組み合わせから最強の手を見つける
+    List<List<Card>> combinations = _generateCombinations(cards, 5);
+    HandResult bestHand = HandResult(HIGH_CARD, 0);
+
+    for (var combo in combinations) {
+      HandResult result = _evaluateFiveCards(combo);
+      if (_compareHands(result, bestHand) > 0) {
+        bestHand = result;
+      }
+    }
+
+    return bestHand;
+  }
+
+  /// 2つの手を比較する
+  /// @return 正の値: hand1が強い、負の値: hand2が強い、0: 同じ強さ
+  static int _compareHands(HandResult hand1, HandResult hand2) {
+    if (hand1.handRank != hand2.handRank) {
+      return hand1.handRank - hand2.handRank;
+    }
+    // 役が同じ場合は高いカードで比較
+    return hand1.highCard - hand2.highCard;
+  }
+
+  /// 要素リストからr個の要素を選ぶ組み合わせを生成
+  static List<List<T>> _generateCombinations<T>(List<T> elements, int r) {
+    List<List<T>> result = [];
+    _generateCombinationsHelper(elements, 0, r, [], result);
+    return result;
+  }
+
+  /// 組み合わせ生成の再帰ヘルパー関数
+  static void _generateCombinationsHelper<T>(List<T> elements, int start, int r,
+      List<T> current, List<List<T>> result) {
+    if (r == 0) {
+      result.add(List.from(current));
+      return;
+    }
+
+    for (int i = start; i <= elements.length - r; i++) {
+      current.add(elements[i]);
+      _generateCombinationsHelper(elements, i + 1, r - 1, current, result);
+      current.removeLast();
+    }
+  }
+
   /// 与えられた5枚のカードの役を評価する
   /// @param cards 評価する5枚のカード
   /// @return 役の評価結果
-  static HandResult evaluateHand(List<Card> cards) {
+  static HandResult _evaluateFiveCards(List<Card> cards) {
     if (cards.length != 5) {
       throw ArgumentError('手札は5枚である必要があります');
     }

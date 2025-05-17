@@ -15,11 +15,29 @@ class CommunityCardsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(
-          'ポット: $potチップ',
-          style: TextStyle(color: Colors.white, fontSize: 18),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.amber.withOpacity(0.7),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 8,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Text(
+            'ポット: $potチップ',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
-        SizedBox(height: 8),
+        SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -46,6 +64,13 @@ class CommunityCardsWidget extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(4.0),
           border: Border.all(color: Colors.black),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black45,
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
